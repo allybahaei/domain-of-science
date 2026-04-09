@@ -25,7 +25,7 @@ export default function Landing() {
           </span>
         </div>
 
-        <h1 className="text-[80px] font-normal text-zinc-900 mb-6 leading-[1.05] tracking-[-0.02em] font-display max-w-[900px]">
+        <h1 className="text-[80px] font-normal text-zinc-900 mb-6 leading-[1.05] tracking-[-0.02em] font-display whitespace-nowrap">
           Meet your intelligent learning
           <br />
           and research tool
