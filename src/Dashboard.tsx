@@ -2,9 +2,23 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getNotebooks, deleteNotebook, type Notebook } from "./store";
 
+const EMOJIS = ["💻", "🧩", "🤖", "🔐", "📚", "🎯", "🧠", "✨"];
+
+const CARD_BACKGROUNDS = ["#f1f1e8", "#f0eaf1"] as const;
+
 function formatDate(ts: number) {
   const d = new Date(ts);
   return d.toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" });
+}
+
+function emojiForNotebook(id: string) {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h + id.charCodeAt(i)) >>> 0;
+  return EMOJIS[h % EMOJIS.length];
+}
+
+function cardBackground(index: number) {
+  return CARD_BACKGROUNDS[index % CARD_BACKGROUNDS.length];
 }
 
 export default function Dashboard() {
@@ -24,50 +38,58 @@ export default function Dashboard() {
   return (
     <div style={styles.page}>
       <div style={styles.container}>
-        <h1 style={styles.heading}>Recent Maps</h1>
+        <h1 style={styles.heading}>Recent notebooks</h1>
 
         <div style={styles.grid}>
-          {/* Create new card */}
-          <button onClick={handleCreate} style={styles.createCard}>
-            <div style={styles.createIcon}>
-              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" strokeWidth="2" strokeLinecap="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
+          <button type="button" onClick={handleCreate} style={styles.createCard}>
+            <div style={styles.createIconWrap}>
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" aria-hidden>
+                <circle cx="12" cy="12" r="11" fill="#dbeafe" />
+                <path
+                  d="M12 7v10M7 12h10"
+                  stroke="#2563eb"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                />
               </svg>
             </div>
-            <span style={styles.createLabel}>New Notebook</span>
+            <span style={styles.createLabel}>Create new notebook</span>
           </button>
 
-          {/* Existing notebooks */}
-          {notebooks.map((nb) => (
-            <button
+          {notebooks.map((nb, index) => (
+            <div
               key={nb.id}
+              role="button"
+              tabIndex={0}
               onClick={() => navigate(`/canvas/${nb.id}`)}
-              style={styles.card}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  navigate(`/canvas/${nb.id}`);
+                }
+              }}
+              style={{
+                ...styles.noteCard,
+                background: cardBackground(index),
+              }}
             >
-              <div style={styles.cardPreview}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
-                  <path d="M14 2v6h6" />
-                  <line x1="8" y1="13" x2="16" y2="13" />
-                  <line x1="8" y1="17" x2="12" y2="17" />
-                </svg>
-              </div>
-              <div style={styles.cardInfo}>
-                <span style={styles.cardTitle}>{nb.title}</span>
-                <span style={styles.cardDate}>{formatDate(nb.updatedAt)}</span>
-              </div>
               <button
+                type="button"
                 onClick={(e) => handleDelete(e, nb.id)}
-                style={styles.deleteBtn}
+                style={styles.menuBtn}
                 title="Delete notebook"
+                aria-label="Delete notebook"
               >
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                  <line x1="18" y1="6" x2="6" y2="18" />
-                  <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
+                <span style={styles.menuDots}>⋮</span>
               </button>
-            </button>
+              <span style={styles.emoji} aria-hidden>
+                {emojiForNotebook(nb.id)}
+              </span>
+              <span style={styles.cardTitle}>{nb.title}</span>
+              <span style={styles.cardMeta}>
+                {formatDate(nb.updatedAt)} • 1 source
+              </span>
+            </div>
           ))}
         </div>
       </div>
@@ -78,110 +100,116 @@ export default function Dashboard() {
 const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
-    background: "#fafafa",
-    padding: "48px 24px",
-    fontFamily: "system-ui, -apple-system, sans-serif",
+    background: "#fff",
+    padding: "40px 28px 64px",
+    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+    boxSizing: "border-box",
   },
   container: {
-    maxWidth: 960,
+    maxWidth: 1120,
     margin: "0 auto",
   },
   heading: {
-    fontSize: 28,
+    fontSize: 22,
     fontWeight: 600,
-    color: "#1a1a1a",
+    color: "#18181b",
     margin: "0 0 28px",
+    letterSpacing: "-0.02em",
   },
   grid: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 16,
+    display: "grid",
+    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
+    gap: 18,
+    alignItems: "stretch",
   },
 
   createCard: {
-    width: 200,
-    height: 220,
-    borderRadius: 14,
-    border: "2px dashed #d4d4d8",
+    borderRadius: 12,
+    border: "1px solid #e4e4e7",
     background: "#fff",
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
     justifyContent: "center",
-    gap: 10,
+    gap: 16,
+    padding: "28px 20px",
+    minHeight: 200,
+    textAlign: "center",
     transition: "border-color 0.15s, box-shadow 0.15s",
   },
-  createIcon: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    background: "#f3f0ff",
+  createIconWrap: {
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
   },
   createLabel: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: 500,
-    color: "#7c3aed",
+    color: "#3f3f46",
+    lineHeight: 1.35,
+    maxWidth: 160,
   },
 
-  card: {
-    width: 200,
-    height: 220,
-    borderRadius: 14,
-    border: "1px solid #e5e5e5",
-    background: "#fff",
+  noteCard: {
+    position: "relative",
+    borderRadius: 12,
+    border: "1px solid rgba(0,0,0,0.06)",
     cursor: "pointer",
     display: "flex",
     flexDirection: "column",
-    overflow: "hidden",
-    position: "relative",
-    transition: "box-shadow 0.15s, border-color 0.15s",
-    padding: 0,
+    alignItems: "flex-start",
+    padding: 20,
+    minHeight: 200,
     textAlign: "left",
+    transition: "box-shadow 0.15s, transform 0.15s",
   },
-  cardPreview: {
-    flex: 1,
-    background: "#f9f7ff",
+  menuBtn: {
+    position: "absolute",
+    top: 14,
+    right: 12,
+    width: 32,
+    height: 32,
+    border: "none",
+    borderRadius: 8,
+    background: "transparent",
+    cursor: "pointer",
     display: "flex",
     alignItems: "center",
     justifyContent: "center",
+    color: "#71717a",
+    padding: 0,
   },
-  cardInfo: {
-    padding: "10px 14px 12px",
-    display: "flex",
-    flexDirection: "column",
-    gap: 2,
+  menuDots: {
+    fontSize: 18,
+    lineHeight: 1,
+    fontWeight: 700,
+    letterSpacing: 0,
+    transform: "translateY(-1px)",
+  },
+  emoji: {
+    fontSize: 40,
+    lineHeight: 1,
+    marginBottom: 14,
+    display: "block",
   },
   cardTitle: {
-    fontSize: 14,
-    fontWeight: 500,
-    color: "#1a1a1a",
-    whiteSpace: "nowrap",
+    fontSize: 15,
+    fontWeight: 600,
+    color: "#18181b",
+    lineHeight: 1.35,
+    width: "100%",
+    display: "-webkit-box",
+    WebkitLineClamp: 3,
+    WebkitBoxOrient: "vertical",
     overflow: "hidden",
-    textOverflow: "ellipsis",
+    flex: 1,
+    marginBottom: 12,
   },
-  cardDate: {
-    fontSize: 12,
-    color: "#a1a1aa",
-  },
-  deleteBtn: {
-    position: "absolute",
-    top: 8,
-    right: 8,
-    width: 24,
-    height: 24,
-    borderRadius: 6,
-    border: "none",
-    background: "rgba(0,0,0,0.05)",
-    color: "#a1a1aa",
-    cursor: "pointer",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    opacity: 0.6,
-    transition: "opacity 0.15s, background 0.15s",
+  cardMeta: {
+    fontSize: 13,
+    color: "#71717a",
+    marginTop: "auto",
+    width: "100%",
   },
 };
