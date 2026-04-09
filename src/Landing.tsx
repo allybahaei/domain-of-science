@@ -1,6 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import Navbar from "./Navbar";
 import Businesses from "./Businesses";
+import Examples from "./Examples";
 
 export default function Landing() {
   const navigate = useNavigate();
@@ -32,6 +33,7 @@ export default function Landing() {
       </div>
 
       <Businesses />
+      <Examples />
     </div>
   );
 }

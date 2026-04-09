@@ -47,7 +47,6 @@ const styles: Record<string, React.CSSProperties> = {
     padding: "28px 24px 32px",
     background: "#fff",
     borderTop: "1px solid #f4f4f5",
-    borderBottom: "1px solid #f4f4f5",
     boxSizing: "border-box",
   },
   row: {
