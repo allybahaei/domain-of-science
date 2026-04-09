@@ -35,7 +35,7 @@ export default function NewNotebook() {
   }
 
   return (
-    <div className="min-h-screen bg-[#faf9f6] flex flex-col items-center justify-center p-6">
+    <div className="min-h-screen bg-white flex flex-col items-center justify-center p-6">
       <h1 className="font-display text-5xl font-normal text-zinc-900 mb-9 text-center tracking-[-0.02em] leading-[1.15]">
         What do you want to learn?
       </h1>
