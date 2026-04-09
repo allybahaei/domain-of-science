@@ -8,9 +8,15 @@ export interface MindmapNode {
   bullets?: string[];
 }
 
+export interface VideoSuggestion {
+  nodeId: string;
+  searchQuery: string;
+}
+
 export interface MindmapData {
   title: string;
   nodes: MindmapNode[];
+  videos?: VideoSuggestion[];
 }
 
 const client = new Anthropic({
@@ -29,6 +35,9 @@ export async function generateMindmap(topic: string): Promise<MindmapData> {
     { "id": "1", "parentId": null, "label": "Main Topic", "depth": 0 },
     { "id": "2", "parentId": "1", "label": "Subtopic", "depth": 1 },
     { "id": "3", "parentId": "2", "label": "Leaf Node", "depth": 2, "bullets": ["Key point one", "Key point two", "Key point three"] }
+  ],
+  "videos": [
+    { "nodeId": "3", "searchQuery": "leaf node topic explained" }
   ]
 }
 Rules:
@@ -39,6 +48,7 @@ Rules:
 - Every non-root node must reference a valid parentId
 - Leaf nodes (nodes that have NO children) MUST include a "bullets" array with 2-4 short bullet points (each 3-8 words) that elaborate on that leaf's topic
 - Non-leaf nodes must NOT include bullets
+- Also return a "videos" array. Only include LEAF nodes (nodes with no children) where a YouTube video would genuinely help the user learn more — not every leaf, only where video explanation adds real value (e.g. complex processes, visual concepts, tutorials). Never include non-leaf nodes. For each, return: { "nodeId": "<id of relevant leaf node>", "searchQuery": "<specific YouTube search query to find the best video on that subtopic>" }
 - Output raw JSON only, no surrounding text`,
     messages: [
       { role: "user", content: `Generate a mind map for the topic: ${topic}` },

@@ -2,7 +2,11 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { createNotebook, saveScene } from "./store";
 import { generateMindmap } from "./lib/generateMindmap";
-import { buildExcalidrawElements } from "./lib/buildExcalidrawElements";
+import {
+  buildExcalidrawElements,
+  buildVideoCardElements,
+} from "./lib/buildExcalidrawElements";
+import { fetchYouTubeResult } from "./lib/youtubeApi";
 
 export default function NewNotebook() {
   const navigate = useNavigate();
@@ -16,9 +20,35 @@ export default function NewNotebook() {
     setError(null);
     try {
       const data = await generateMindmap(topic.trim());
-      const elements = buildExcalidrawElements(data);
+      const { elements, posMap, dimsMap } = buildExcalidrawElements(data);
+
+      let allElements = elements;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      let files: Record<string, any> = {};
+
+      if (data.videos?.length) {
+        const parentIds = new Set(data.nodes.map((n) => n.parentId));
+        const leafVideos = data.videos.filter(
+          (v) => !parentIds.has(v.nodeId),
+        );
+        const videoResults = await Promise.all(
+          leafVideos.map(async (v) => {
+            const result = await fetchYouTubeResult(v.searchQuery);
+            return result ? { nodeId: v.nodeId, result } : null;
+          }),
+        );
+        const valid = videoResults.filter(
+          (r): r is NonNullable<typeof r> => r !== null,
+        );
+        if (valid.length) {
+          const cards = buildVideoCardElements(valid, posMap, dimsMap);
+          allElements = [...elements, ...cards.elements];
+          files = cards.files;
+        }
+      }
+
       const nb = createNotebook(data.title || topic.trim());
-      saveScene(nb.id, { elements, appState: {} });
+      saveScene(nb.id, { elements: allElements, appState: {}, files });
       navigate(`/canvas/${nb.id}`);
     } catch (err) {
       console.error("Mindmap generation failed:", err);

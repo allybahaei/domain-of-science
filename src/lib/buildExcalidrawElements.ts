@@ -1,4 +1,5 @@
 import type { MindmapData, MindmapNode } from "./generateMindmap";
+import type { YouTubeResult } from "./youtubeApi";
 
 interface TreeNode {
   node: MindmapNode;
@@ -8,34 +9,37 @@ interface TreeNode {
   angleSpan: number;
 }
 
-const ROOT_COLOR = { bg: "#FFD700", stroke: "#B8860B" };
+const ROOT_COLOR = { bg: "#FFF1C4", stroke: "#C4A574" };
 
 const SUBTREE_PALETTE: { bg: string; stroke: string }[] = [
-  { bg: "#6B8CFF", stroke: "#3A5BD9" },
-  { bg: "#FF6B8C", stroke: "#D93A5B" },
-  { bg: "#6BFFB8", stroke: "#3AD98A" },
-  { bg: "#C084FC", stroke: "#7C3AED" },
-  { bg: "#FB923C", stroke: "#C2410C" },
-  { bg: "#38BDF8", stroke: "#0369A1" },
-  { bg: "#F472B6", stroke: "#BE185D" },
-  { bg: "#A3E635", stroke: "#4D7C0F" },
-  { bg: "#FACC15", stroke: "#A16207" },
-  { bg: "#2DD4BF", stroke: "#0F766E" },
+  { bg: "#D6E4FF", stroke: "#7A8EB8" },
+  { bg: "#FFDDE8", stroke: "#B88A9A" },
+  { bg: "#D4F5E9", stroke: "#6FA090" },
+  { bg: "#E8DCFA", stroke: "#8F7BA8" },
+  { bg: "#FFE8D6", stroke: "#B89278" },
+  { bg: "#D4EEFC", stroke: "#6E96B0" },
+  { bg: "#F8D8EC", stroke: "#A87E96" },
+  { bg: "#E8F5D4", stroke: "#8AA06E" },
+  { bg: "#FFF4C8", stroke: "#B0A060" },
+  { bg: "#D6F5F2", stroke: "#6E9E98" },
 ];
 
 const NODE_DIMS: Record<number, { width: number; height: number; fontSize: number }> = {
-  0: { width: 320, height: 90, fontSize: 36 },
-  1: { width: 240, height: 70, fontSize: 22 },
-  2: { width: 220, height: 65, fontSize: 20 },
-  3: { width: 200, height: 60, fontSize: 18 },
+  0: { width: 340, height: 90, fontSize: 36 },
+  1: { width: 260, height: 70, fontSize: 22 },
+  2: { width: 240, height: 60, fontSize: 18 },
+  3: { width: 220, height: 55, fontSize: 16 },
 };
 
-const BULLET_FONT_SIZE = 14;
-const BULLET_LINE_HEIGHT = 1.4;
-const BULLET_PADDING_TOP = 8;
-const LEAF_MIN_WIDTH = 260;
+const LEAF_MIN_WIDTH = 340;
+const LEAF_INNER_PADDING_X = 14;
+const LEAF_TEXT_TOP = 12;
+const LEAF_PADDING_BOTTOM = 14;
+/** Blank line count between title and bullet list in leaf nodes */
+const LEAF_TITLE_BODY_GAP_LINES = 1;
+const LEAF_LINE_HEIGHT = 1.4;
 
-const RADII = [0, 300, 580, 850];
+const RADII = [0, 320, 620, 950];
 const ARROW_GAP = 8;
 
 function randomId(): string {
@@ -125,8 +129,15 @@ function assignAngles(tree: TreeNode): void {
   recurse(tree);
 }
 
+export interface BuildResult {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  elements: any[];
+  posMap: Map<string, { x: number; y: number }>;
+  dimsMap: Map<string, { width: number; height: number }>;
+}
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function buildExcalidrawElements(data: MindmapData): any[] {
+export function buildExcalidrawElements(data: MindmapData): BuildResult {
   const tree = buildTree(data.nodes);
   assignAngles(tree);
 
@@ -146,15 +157,24 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
 
     const baseDims = NODE_DIMS[t.node.depth] ?? NODE_DIMS[3];
     const isLeaf = t.children.length === 0 && t.node.bullets && t.node.bullets.length > 0;
+    const labelText =
+      t.node.depth === 0 ? t.node.label.toUpperCase() : t.node.label;
 
     const bulletText = isLeaf
       ? t.node.bullets!.map((b) => `• ${b}`).join("\n")
       : "";
     const bulletLineCount = isLeaf ? t.node.bullets!.length : 0;
-    const bulletBlockHeight = bulletLineCount * BULLET_FONT_SIZE * BULLET_LINE_HEIGHT + BULLET_PADDING_TOP;
+    const leafContentLineCount = isLeaf
+      ? 1 + LEAF_TITLE_BODY_GAP_LINES + bulletLineCount
+      : 0;
+    const leafTextBlockHeight = isLeaf
+      ? leafContentLineCount * baseDims.fontSize * LEAF_LINE_HEIGHT
+      : 0;
 
     const width = isLeaf ? Math.max(baseDims.width, LEAF_MIN_WIDTH) : baseDims.width;
-    const height = isLeaf ? baseDims.height + bulletBlockHeight : baseDims.height;
+    const height = isLeaf
+      ? LEAF_TEXT_TOP + leafTextBlockHeight + LEAF_PADDING_BOTTOM
+      : baseDims.height;
     dimsMap.set(t.node.id, { width, height });
 
     const rectId = randomId();
@@ -165,6 +185,7 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
     const y = pos.y - height / 2;
 
     const boundElements: { id: string; type: string }[] = [{ id: textId, type: "text" }];
+    const isRoot = t.node.depth === 0;
 
     elements.push({
       id: rectId,
@@ -173,12 +194,12 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
       y,
       width,
       height,
-      strokeColor: color.stroke,
+      strokeColor: isRoot ? "#000000" : color.stroke,
       backgroundColor: color.bg,
       fillStyle: "solid",
       roughness: 2,
       opacity: 100,
-      roundness: { type: 3 },
+      roundness: isRoot ? null : { type: 3 },
       boundElements,
       isDeleted: false,
       groupIds: [],
@@ -187,44 +208,22 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
     });
 
     if (isLeaf) {
-      const labelHeight = baseDims.fontSize * 1.2;
+      const combinedText = `${labelText}\n\n${bulletText}`;
       elements.push({
         id: textId,
         type: "text",
-        x: x + 10,
-        y: y + 12,
-        width: width - 20,
-        height: labelHeight,
-        text: t.node.label,
+        x: x + LEAF_INNER_PADDING_X,
+        y: y + LEAF_TEXT_TOP,
+        width: width - 2 * LEAF_INNER_PADDING_X,
+        height: leafTextBlockHeight,
+        text: combinedText,
         fontSize: baseDims.fontSize,
-        fontFamily: 5,
-        textAlign: "center",
-        verticalAlign: "top",
-        containerId: rectId,
-        originalText: t.node.label,
-        autoResize: true,
-        isDeleted: false,
-        groupIds: [],
-        locked: false,
-        version: 1,
-      });
-
-      const bulletId = randomId();
-      elements.push({
-        id: bulletId,
-        type: "text",
-        x: x + 14,
-        y: y + labelHeight + 16,
-        width: width - 28,
-        height: bulletBlockHeight,
-        text: bulletText,
-        fontSize: BULLET_FONT_SIZE,
         fontFamily: 5,
         textAlign: "left",
         verticalAlign: "top",
-        lineHeight: BULLET_LINE_HEIGHT,
-        containerId: null,
-        originalText: bulletText,
+        lineHeight: LEAF_LINE_HEIGHT,
+        containerId: rectId,
+        originalText: combinedText,
         autoResize: true,
         isDeleted: false,
         groupIds: [],
@@ -239,13 +238,13 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
         y: y + height / 2 - baseDims.fontSize / 2,
         width: width - 20,
         height: baseDims.fontSize,
-        text: t.node.label,
+        text: labelText,
         fontSize: baseDims.fontSize,
         fontFamily: 5,
         textAlign: "center",
         verticalAlign: "middle",
         containerId: rectId,
-        originalText: t.node.label,
+        originalText: labelText,
         autoResize: true,
         isDeleted: false,
         groupIds: [],
@@ -352,5 +351,127 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
 
   emitEdges(tree);
 
-  return elements;
+  return { elements, posMap, dimsMap };
+}
+
+const VIDEO_CARD_WIDTH = 200;
+const VIDEO_THUMB_HEIGHT = 112;
+const VIDEO_CARD_PADDING = 6;
+const VIDEO_CARD_GAP = 40;
+const VIDEO_TITLE_FONT_SIZE = 12;
+const VIDEO_TITLE_HEIGHT = VIDEO_TITLE_FONT_SIZE * 2;
+const VIDEO_CARD_TOTAL_HEIGHT =
+  VIDEO_CARD_PADDING + VIDEO_THUMB_HEIGHT + VIDEO_CARD_PADDING + VIDEO_TITLE_HEIGHT + VIDEO_CARD_PADDING;
+const VIDEO_CARD_OUTER_WIDTH = VIDEO_CARD_WIDTH + VIDEO_CARD_PADDING * 2;
+const VIDEO_TITLE_MAX_CHARS = 50;
+
+export interface VideoCardInput {
+  nodeId: string;
+  result: YouTubeResult;
+}
+
+export function buildVideoCardElements(
+  cards: VideoCardInput[],
+  posMap: Map<string, { x: number; y: number }>,
+  dimsMap: Map<string, { width: number; height: number }>,
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+): { elements: any[]; files: Record<string, any> } {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const elements: any[] = [];
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const files: Record<string, any> = {};
+
+  for (const { nodeId, result } of cards) {
+    const pos = posMap.get(nodeId);
+    const dims = dimsMap.get(nodeId);
+    if (!pos || !dims) continue;
+
+    const onRightHalf = pos.x >= 0;
+    const rectX = onRightHalf
+      ? pos.x - dims.width / 2 - VIDEO_CARD_GAP - VIDEO_CARD_OUTER_WIDTH
+      : pos.x + dims.width / 2 + VIDEO_CARD_GAP;
+    const rectY = pos.y - VIDEO_CARD_TOTAL_HEIGHT / 2;
+
+    const groupId = randomId();
+    const rectId = randomId();
+    const imageId = randomId();
+    const textId = randomId();
+
+    elements.push({
+      id: rectId,
+      type: "rectangle",
+      x: rectX,
+      y: rectY,
+      width: VIDEO_CARD_OUTER_WIDTH,
+      height: VIDEO_CARD_TOTAL_HEIGHT,
+      strokeColor: "#d4d4d8",
+      backgroundColor: "#ffffff",
+      fillStyle: "solid",
+      roughness: 0,
+      opacity: 100,
+      roundness: { type: 3 },
+      boundElements: [
+        { id: imageId, type: "image" },
+        { id: textId, type: "text" },
+      ],
+      isDeleted: false,
+      groupIds: [groupId],
+      locked: false,
+      version: 1,
+    });
+
+    const fileId = randomId();
+    files[fileId] = {
+      mimeType: "image/jpeg",
+      id: fileId,
+      dataURL: result.thumbnail,
+      created: Date.now(),
+    };
+
+    elements.push({
+      id: imageId,
+      type: "image",
+      x: rectX + VIDEO_CARD_PADDING,
+      y: rectY + VIDEO_CARD_PADDING,
+      width: VIDEO_CARD_WIDTH,
+      height: VIDEO_THUMB_HEIGHT,
+      fileId,
+      status: "saved",
+      link: `https://youtube.com/watch?v=${result.videoId}`,
+      opacity: 100,
+      roundness: { type: 3 },
+      isDeleted: false,
+      groupIds: [groupId],
+      locked: false,
+      version: 1,
+    });
+
+    const truncatedTitle =
+      result.title.length > VIDEO_TITLE_MAX_CHARS
+        ? result.title.slice(0, VIDEO_TITLE_MAX_CHARS) + "..."
+        : result.title;
+
+    elements.push({
+      id: textId,
+      type: "text",
+      x: rectX + VIDEO_CARD_PADDING,
+      y: rectY + VIDEO_CARD_PADDING + VIDEO_THUMB_HEIGHT + VIDEO_CARD_PADDING,
+      width: VIDEO_CARD_WIDTH,
+      height: VIDEO_TITLE_HEIGHT,
+      text: truncatedTitle,
+      fontSize: VIDEO_TITLE_FONT_SIZE,
+      fontFamily: 6,
+      textAlign: "left",
+      verticalAlign: "top",
+      containerId: rectId,
+      originalText: truncatedTitle,
+      autoResize: true,
+      isDeleted: false,
+      groupIds: [groupId],
+      locked: false,
+      version: 1,
+    });
+  }
+
+  return { elements, files };
 }

@@ -25,7 +25,11 @@ export default function Canvas() {
 
   const savedScene = getScene(id);
   const initialData = savedScene
-    ? { elements: savedScene.elements, appState: { ...savedScene.appState, collaborators: [] } }
+    ? {
+        elements: savedScene.elements,
+        appState: { ...savedScene.appState, collaborators: [] },
+        files: savedScene.files || {},
+      }
     : undefined;
 
   const shouldFitView = !savedScene?.appState?.zoom;
@@ -36,6 +40,7 @@ export default function Canvas() {
     debounceRef.current = setTimeout(() => {
       const elements = apiRef.current!.getSceneElements();
       const appState = apiRef.current!.getAppState();
+      const files = apiRef.current!.getFiles();
       saveScene(id, {
         elements,
         appState: {
@@ -44,6 +49,7 @@ export default function Canvas() {
           scrollX: appState.scrollX,
           scrollY: appState.scrollY,
         },
+        files,
       });
     }, 400);
   }, [id]);
