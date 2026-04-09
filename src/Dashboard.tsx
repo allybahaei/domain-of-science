@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import AppBar from "./AppBar";
 import { getNotebooks, deleteNotebook, type Notebook } from "./store";
 
 const EMOJIS = ["💻", "🧩", "🤖", "🔐", "📚", "🎯", "🧠", "✨"];
@@ -37,7 +38,9 @@ export default function Dashboard() {
 
   return (
     <div style={styles.page}>
-      <div style={styles.container}>
+      <AppBar />
+      <div style={styles.main}>
+        <div style={styles.container}>
         <h1 style={styles.heading}>Recent notebooks</h1>
 
         <div style={styles.grid}>
@@ -92,6 +95,7 @@ export default function Dashboard() {
             </div>
           ))}
         </div>
+        </div>
       </div>
     </div>
   );
@@ -101,8 +105,14 @@ const styles: Record<string, React.CSSProperties> = {
   page: {
     minHeight: "100vh",
     background: "#fff",
-    padding: "40px 28px 64px",
+    display: "flex",
+    flexDirection: "column",
     fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
+    boxSizing: "border-box",
+  },
+  main: {
+    flex: 1,
+    padding: "32px 28px 64px",
     boxSizing: "border-box",
   },
   container: {
