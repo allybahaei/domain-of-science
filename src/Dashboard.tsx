@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getNotebooks, createNotebook, deleteNotebook, type Notebook } from "./store";
+import { getNotebooks, deleteNotebook, type Notebook } from "./store";
 
 function formatDate(ts: number) {
   const d = new Date(ts);
@@ -12,9 +12,7 @@ export default function Dashboard() {
   const navigate = useNavigate();
 
   function handleCreate() {
-    const nb = createNotebook(`Untitled ${notebooks.length + 1}`);
-    setNotebooks(getNotebooks());
-    navigate(`/canvas/${nb.id}`);
+    navigate("/new");
   }
 
   function handleDelete(e: React.MouseEvent, id: string) {

@@ -28,6 +28,8 @@ export default function Canvas() {
     ? { elements: savedScene.elements, appState: { ...savedScene.appState, collaborators: [] } }
     : undefined;
 
+  const shouldFitView = !savedScene?.appState?.zoom;
+
   const handleChange = useCallback(() => {
     if (!apiRef.current) return;
     clearTimeout(debounceRef.current);
@@ -49,7 +51,17 @@ export default function Canvas() {
   return (
     <div style={{ width: "100vw", height: "100vh" }}>
       <Excalidraw
-        excalidrawAPI={(api) => { apiRef.current = api; }}
+        excalidrawAPI={(api) => {
+          apiRef.current = api;
+          if (shouldFitView) {
+            setTimeout(() => {
+              api.scrollToContent(api.getSceneElements(), {
+                fitToViewport: true,
+                viewportZoomFactor: 0.85,
+              });
+            }, 300);
+          }
+        }}
         initialData={initialData}
         onChange={handleChange}
       >
