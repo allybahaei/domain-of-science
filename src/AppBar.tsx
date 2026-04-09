@@ -6,54 +6,22 @@ export default function AppBar() {
   const navigate = useNavigate();
 
   return (
-    <header style={styles.bar}>
-      <button type="button" onClick={() => navigate("/")} style={styles.brand}>
+    <header className="flex items-center justify-between w-full px-7 py-3.5 bg-white">
+      <button
+        type="button"
+        onClick={() => navigate("/")}
+        className="p-0 text-base font-semibold text-zinc-900 cursor-pointer"
+      >
         ExploreAI
       </button>
-      <button type="button" style={styles.profileBtn} aria-label="Profile">
-        <span style={styles.profileLabel}>profile</span>
+      <button
+        type="button"
+        className="inline-flex items-center gap-2 px-1 py-1.5 cursor-pointer rounded-lg"
+        aria-label="Profile"
+      >
+        <span className="text-sm font-medium text-zinc-600 lowercase">profile</span>
         <HugeiconsIcon icon={UserCircleIcon} size={20} strokeWidth={1.75} color="#3f3f46" />
       </button>
     </header>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  bar: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-    width: "100%",
-    padding: "14px 28px",
-    boxSizing: "border-box",
-    background: "#fff",
-    fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-  },
-  brand: {
-    border: "none",
-    background: "none",
-    padding: 0,
-    fontSize: 16,
-    fontWeight: 600,
-    color: "#18181b",
-    cursor: "pointer",
-    fontFamily: "inherit",
-  },
-  profileBtn: {
-    display: "inline-flex",
-    alignItems: "center",
-    gap: 8,
-    border: "none",
-    background: "none",
-    padding: "6px 4px",
-    cursor: "pointer",
-    fontFamily: "inherit",
-    borderRadius: 8,
-  },
-  profileLabel: {
-    fontSize: 14,
-    fontWeight: 500,
-    color: "#52525b",
-    textTransform: "lowercase",
-  },
-};

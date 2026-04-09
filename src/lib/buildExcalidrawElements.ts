@@ -30,6 +30,11 @@ const NODE_DIMS: Record<number, { width: number; height: number; fontSize: numbe
   3: { width: 200, height: 60, fontSize: 18 },
 };
 
+const BULLET_FONT_SIZE = 14;
+const BULLET_LINE_HEIGHT = 1.4;
+const BULLET_PADDING_TOP = 8;
+const LEAF_MIN_WIDTH = 260;
+
 const RADII = [0, 300, 580, 850];
 const ARROW_GAP = 8;
 
@@ -129,6 +134,7 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
   const elements: any[] = [];
   const rectIdMap = new Map<string, string>();
   const posMap = new Map<string, { x: number; y: number }>();
+  const dimsMap = new Map<string, { width: number; height: number }>();
 
   function emitNode(t: TreeNode, color: { bg: string; stroke: string }) {
     const r = RADII[t.node.depth] ?? RADII[RADII.length - 1];
@@ -138,54 +144,115 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
     };
     posMap.set(t.node.id, pos);
 
-    const dims = NODE_DIMS[t.node.depth] ?? NODE_DIMS[3];
+    const baseDims = NODE_DIMS[t.node.depth] ?? NODE_DIMS[3];
+    const isLeaf = t.children.length === 0 && t.node.bullets && t.node.bullets.length > 0;
+
+    const bulletText = isLeaf
+      ? t.node.bullets!.map((b) => `• ${b}`).join("\n")
+      : "";
+    const bulletLineCount = isLeaf ? t.node.bullets!.length : 0;
+    const bulletBlockHeight = bulletLineCount * BULLET_FONT_SIZE * BULLET_LINE_HEIGHT + BULLET_PADDING_TOP;
+
+    const width = isLeaf ? Math.max(baseDims.width, LEAF_MIN_WIDTH) : baseDims.width;
+    const height = isLeaf ? baseDims.height + bulletBlockHeight : baseDims.height;
+    dimsMap.set(t.node.id, { width, height });
+
     const rectId = randomId();
     const textId = randomId();
     rectIdMap.set(t.node.id, rectId);
 
-    const x = pos.x - dims.width / 2;
-    const y = pos.y - dims.height / 2;
+    const x = pos.x - width / 2;
+    const y = pos.y - height / 2;
+
+    const boundElements: { id: string; type: string }[] = [{ id: textId, type: "text" }];
 
     elements.push({
       id: rectId,
       type: "rectangle",
       x,
       y,
-      width: dims.width,
-      height: dims.height,
+      width,
+      height,
       strokeColor: color.stroke,
       backgroundColor: color.bg,
       fillStyle: "solid",
       roughness: 2,
       opacity: 100,
       roundness: { type: 3 },
-      boundElements: [{ id: textId, type: "text" }],
+      boundElements,
       isDeleted: false,
       groupIds: [],
       locked: false,
       version: 1,
     });
 
-    elements.push({
-      id: textId,
-      type: "text",
-      x: x + 10,
-      y: y + dims.height / 2 - dims.fontSize / 2,
-      width: dims.width - 20,
-      height: dims.fontSize,
-      text: t.node.label,
-      fontSize: dims.fontSize,
-      fontFamily: 5,
-      textAlign: "center",
-      verticalAlign: "middle",
-      containerId: rectId,
-      originalText: t.node.label,
-      autoResize: true,
-      isDeleted: false,
-      groupIds: [],
-      locked: false,
-      version: 1,
-    });
+    if (isLeaf) {
+      const labelHeight = baseDims.fontSize * 1.2;
+      elements.push({
+        id: textId,
+        type: "text",
+        x: x + 10,
+        y: y + 12,
+        width: width - 20,
+        height: labelHeight,
+        text: t.node.label,
+        fontSize: baseDims.fontSize,
+        fontFamily: 5,
+        textAlign: "center",
+        verticalAlign: "top",
+        containerId: rectId,
+        originalText: t.node.label,
+        autoResize: true,
+        isDeleted: false,
+        groupIds: [],
+        locked: false,
+        version: 1,
+      });
+
+      const bulletId = randomId();
+      elements.push({
+        id: bulletId,
+        type: "text",
+        x: x + 14,
+        y: y + labelHeight + 16,
+        width: width - 28,
+        height: bulletBlockHeight,
+        text: bulletText,
+        fontSize: BULLET_FONT_SIZE,
+        fontFamily: 5,
+        textAlign: "left",
+        verticalAlign: "top",
+        lineHeight: BULLET_LINE_HEIGHT,
+        containerId: null,
+        originalText: bulletText,
+        autoResize: true,
+        isDeleted: false,
+        groupIds: [],
+        locked: false,
+        version: 1,
+      });
+    } else {
+      elements.push({
+        id: textId,
+        type: "text",
+        x: x + 10,
+        y: y + height / 2 - baseDims.fontSize / 2,
+        width: width - 20,
+        height: baseDims.fontSize,
+        text: t.node.label,
+        fontSize: baseDims.fontSize,
+        fontFamily: 5,
+        textAlign: "center",
+        verticalAlign: "middle",
+        containerId: rectId,
+        originalText: t.node.label,
+        autoResize: true,
+        isDeleted: false,
+        groupIds: [],
+        locked: false,
+        version: 1,
+      });
+    }
 
     for (const child of t.children) {
       emitNode(child, color);
@@ -214,8 +281,8 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
       const cp = posMap.get(child.node.id)!;
       const arrowId = randomId();
 
-      const sDims = NODE_DIMS[t.node.depth] ?? NODE_DIMS[3];
-      const cDims = NODE_DIMS[child.node.depth] ?? NODE_DIMS[3];
+      const sDims = dimsMap.get(t.node.id) ?? NODE_DIMS[t.node.depth] ?? NODE_DIMS[3];
+      const cDims = dimsMap.get(child.node.id) ?? NODE_DIMS[child.node.depth] ?? NODE_DIMS[3];
 
       const start = rectEdgePoint(
         sp.x, sp.y, sDims.width / 2, sDims.height / 2,

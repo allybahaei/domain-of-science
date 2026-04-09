@@ -5,6 +5,7 @@ export interface MindmapNode {
   parentId: string | null;
   label: string;
   depth: number;
+  bullets?: string[];
 }
 
 export interface MindmapData {
@@ -25,7 +26,9 @@ export async function generateMindmap(topic: string): Promise<MindmapData> {
 {
   "title": "Topic Name",
   "nodes": [
-    { "id": "1", "parentId": null, "label": "Main Topic", "depth": 0 }
+    { "id": "1", "parentId": null, "label": "Main Topic", "depth": 0 },
+    { "id": "2", "parentId": "1", "label": "Subtopic", "depth": 1 },
+    { "id": "3", "parentId": "2", "label": "Leaf Node", "depth": 2, "bullets": ["Key point one", "Key point two", "Key point three"] }
   ]
 }
 Rules:
@@ -34,6 +37,8 @@ Rules:
 - Each label must be 2-5 words
 - There must be exactly one root node with parentId null and depth 0
 - Every non-root node must reference a valid parentId
+- Leaf nodes (nodes that have NO children) MUST include a "bullets" array with 2-4 short bullet points (each 3-8 words) that elaborate on that leaf's topic
+- Non-leaf nodes must NOT include bullets
 - Output raw JSON only, no surrounding text`,
     messages: [
       { role: "user", content: `Generate a mind map for the topic: ${topic}` },

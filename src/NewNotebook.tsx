@@ -35,43 +35,49 @@ export default function NewNotebook() {
   }
 
   return (
-    <div style={styles.page}>
-      <h1 style={styles.heading}>What do you want to learn?</h1>
+    <div className="min-h-screen bg-[#faf9f6] flex flex-col items-center justify-center p-6">
+      <h1 className="font-display text-5xl font-normal text-zinc-900 mb-9 text-center tracking-[-0.02em] leading-[1.15]">
+        What do you want to learn?
+      </h1>
 
-      <div style={styles.textareaWrap}>
+      <div className="w-full max-w-[640px] bg-white rounded-2xl border border-zinc-200 shadow-[0_2px_8px_rgba(0,0,0,0.04)] flex flex-col overflow-hidden">
         <textarea
           value={topic}
           onChange={(e) => setTopic(e.target.value)}
           onKeyDown={handleKeyDown}
           placeholder="How can I help you today?"
           disabled={loading}
-          style={styles.textarea}
+          className="w-full border-none outline-none resize-none text-base leading-relaxed text-zinc-900 pt-3.5 px-5 pb-1.5 bg-transparent"
           rows={2}
           autoFocus
         />
 
-        <div style={styles.actionRow}>
-          <button type="button" style={styles.actionBtn} disabled={loading}>
+        <div className="flex flex-wrap gap-2 px-5 pb-2.5">
+          <button
+            type="button"
+            className="text-[13px] font-medium text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-full px-3.5 py-1.5 cursor-pointer"
+            disabled={loading}
+          >
             youtube video
           </button>
-          <button type="button" style={styles.actionBtn} disabled={loading}>
+          <button
+            type="button"
+            className="text-[13px] font-medium text-zinc-600 bg-zinc-50 border border-zinc-200 rounded-full px-3.5 py-1.5 cursor-pointer"
+            disabled={loading}
+          >
             upload files
           </button>
         </div>
 
-        {error && <p style={styles.error}>{error}</p>}
+        {error && <p className="text-[13px] text-red-600 px-5 pb-1">{error}</p>}
 
-        <div style={styles.bottomBar}>
-          {loading && <span style={styles.hint}>Generating…</span>}
+        <div className="flex items-center justify-end px-3 pt-2 pb-3 gap-3">
+          {loading && <span className="text-[13px] text-zinc-400 mr-auto">Generating…</span>}
           <button
             type="button"
             onClick={handleGenerate}
             disabled={loading || !topic.trim()}
-            style={{
-              ...styles.submitBtn,
-              opacity: loading || !topic.trim() ? 0.4 : 1,
-              cursor: loading || !topic.trim() ? "not-allowed" : "pointer",
-            }}
+            className="w-9 h-9 rounded-[10px] bg-zinc-900 text-white flex items-center justify-center transition-opacity cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed"
             aria-label="Generate mind map"
           >
             <svg
@@ -94,99 +100,3 @@ export default function NewNotebook() {
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  page: {
-    minHeight: "100vh",
-    background: "#faf9f6",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    fontFamily: "system-ui, -apple-system, sans-serif",
-    padding: 24,
-    boxSizing: "border-box",
-  },
-  heading: {
-    fontFamily: "'Instrument Serif', serif",
-    fontSize: 48,
-    fontWeight: 400,
-    color: "#1a1a1a",
-    margin: "0 0 36px",
-    textAlign: "center",
-    letterSpacing: "-0.02em",
-    lineHeight: 1.15,
-  },
-  textareaWrap: {
-    width: "100%",
-    maxWidth: 640,
-    background: "#fff",
-    borderRadius: 16,
-    border: "1px solid #e4e4e7",
-    boxShadow: "0 2px 8px rgba(0,0,0,0.04)",
-    display: "flex",
-    flexDirection: "column",
-    overflow: "hidden",
-  },
-  textarea: {
-    width: "100%",
-    border: "none",
-    outline: "none",
-    resize: "none",
-    fontSize: 16,
-    lineHeight: 1.6,
-    color: "#1a1a1a",
-    padding: "14px 20px 6px",
-    boxSizing: "border-box",
-    fontFamily: "system-ui, -apple-system, sans-serif",
-    background: "transparent",
-  },
-  actionRow: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: 8,
-    padding: "0 20px 10px",
-  },
-  actionBtn: {
-    fontSize: 13,
-    fontWeight: 500,
-    color: "#52525b",
-    background: "#fafafa",
-    border: "1px solid #e4e4e7",
-    borderRadius: 999,
-    padding: "6px 14px",
-    cursor: "pointer",
-    fontFamily: "inherit",
-  },
-  bottomBar: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "flex-end",
-    padding: "8px 12px 12px",
-    gap: 12,
-  },
-  hint: {
-    fontSize: 13,
-    color: "#a1a1aa",
-    marginRight: "auto",
-  },
-  error: {
-    fontSize: 13,
-    color: "#dc2626",
-    margin: 0,
-    padding: "0 20px 4px",
-  },
-  submitBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    border: "none",
-    background: "#1a1a1a",
-    color: "#fff",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 0,
-    transition: "opacity 0.15s",
-  },
-};

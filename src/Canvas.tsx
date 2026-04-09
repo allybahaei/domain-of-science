@@ -9,14 +9,14 @@ export default function Canvas() {
   const navigate = useNavigate();
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const apiRef = useRef<any>(null);
-  const debounceRef = useRef<ReturnType<typeof setTimeout>>();
+  const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
 
   const notebook = getNotebooks().find((n) => n.id === id);
   if (!id || !notebook) {
     return (
-      <div style={{ padding: 48, fontFamily: "system-ui", textAlign: "center" }}>
+      <div className="p-12 text-center">
         <p>Notebook not found.</p>
-        <button onClick={() => navigate("/")} style={{ marginTop: 16, cursor: "pointer" }}>
+        <button onClick={() => navigate("/")} className="mt-4 cursor-pointer">
           Back to Dashboard
         </button>
       </div>
@@ -49,7 +49,7 @@ export default function Canvas() {
   }, [id]);
 
   return (
-    <div style={{ width: "100vw", height: "100vh" }}>
+    <div className="w-screen h-screen">
       <Excalidraw
         excalidrawAPI={(api) => {
           apiRef.current = api;

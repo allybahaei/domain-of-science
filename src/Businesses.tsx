@@ -3,8 +3,8 @@ const LOGO_PLACEHOLDER_WIDTHS = [96, 72, 104, 88, 76, 92];
 
 export default function Businesses() {
   return (
-    <section style={styles.section} aria-label="Trusted by">
-      <div style={styles.row}>
+    <section className="self-stretch w-full mt-[72px] px-6 pt-7 pb-8 bg-white border-t border-zinc-100" aria-label="Trusted by">
+      <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-7 max-w-[1100px] mx-auto">
         <LogoPlaceholder label="Company 1" width={LOGO_PLACEHOLDER_WIDTHS[0]} />
         <LogoPlaceholder label="Company 2" width={LOGO_PLACEHOLDER_WIDTHS[1]} />
         <LogoPlaceholder label="Company 3" width={LOGO_PLACEHOLDER_WIDTHS[2]} />
@@ -19,84 +19,22 @@ export default function Businesses() {
 
 function LogoPlaceholder({ label, width }: { label: string; width: number }) {
   return (
-    <div style={styles.logoSlot} aria-hidden title={label}>
-      <div style={{ ...styles.logoBar, width }} />
+    <div className="flex items-center opacity-65" aria-hidden title={label}>
+      <div className="h-6 rounded bg-slate-400" style={{ width }} />
     </div>
   );
 }
 
 function RatingPlaceholder() {
   return (
-    <div style={styles.ratingSlot} aria-hidden>
-      <span style={styles.ratingTop}>4.9 out of 5</span>
-      <div style={styles.stars}>
+    <div className="flex flex-col items-center gap-1 px-3.5 py-2 rounded-lg border border-zinc-200 bg-zinc-50 min-w-[120px]" aria-hidden>
+      <span className="text-[11px] font-semibold text-slate-500 tracking-wide">4.9 out of 5</span>
+      <div className="flex gap-[3px]">
         {[0, 1, 2, 3, 4].map((i) => (
-          <span key={i} style={styles.star} />
+          <span key={i} className="w-2.5 h-2.5 rounded-sm bg-slate-300" />
         ))}
       </div>
-      <span style={styles.ratingBottom}>Placeholder reviews</span>
+      <span className="text-[10px] text-slate-400">Placeholder reviews</span>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  section: {
-    alignSelf: "stretch",
-    width: "100%",
-    marginTop: 72,
-    padding: "28px 24px 32px",
-    background: "#fff",
-    borderTop: "1px solid #f4f4f5",
-    boxSizing: "border-box",
-  },
-  row: {
-    display: "flex",
-    flexWrap: "wrap",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: "28px 40px",
-    maxWidth: 1100,
-    margin: "0 auto",
-  },
-  logoSlot: {
-    display: "flex",
-    alignItems: "center",
-    opacity: 0.65,
-  },
-  logoBar: {
-    height: 24,
-    borderRadius: 4,
-    background: "#94a3b8",
-  },
-  ratingSlot: {
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 4,
-    padding: "8px 14px",
-    borderRadius: 8,
-    border: "1px solid #e4e4e7",
-    background: "#fafafa",
-    minWidth: 120,
-  },
-  ratingTop: {
-    fontSize: 11,
-    fontWeight: 600,
-    color: "#64748b",
-    letterSpacing: "0.02em",
-  },
-  stars: {
-    display: "flex",
-    gap: 3,
-  },
-  star: {
-    width: 10,
-    height: 10,
-    borderRadius: 2,
-    background: "#cbd5e1",
-  },
-  ratingBottom: {
-    fontSize: 10,
-    color: "#94a3b8",
-  },
-};
