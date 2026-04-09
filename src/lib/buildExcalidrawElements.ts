@@ -24,7 +24,7 @@ const SUBTREE_PALETTE: { bg: string; stroke: string }[] = [
 ];
 
 const NODE_DIMS: Record<number, { width: number; height: number; fontSize: number }> = {
-  0: { width: 280, height: 80, fontSize: 28 },
+  0: { width: 320, height: 90, fontSize: 36 },
   1: { width: 240, height: 70, fontSize: 22 },
   2: { width: 220, height: 65, fontSize: 20 },
   3: { width: 200, height: 60, fontSize: 18 },
