@@ -1,30 +1,37 @@
 import { useNavigate } from "react-router-dom";
+import Navbar from "./Navbar";
+import Businesses from "./Businesses";
 
 export default function Landing() {
   const navigate = useNavigate();
 
   return (
     <div style={styles.page}>
-      <div style={styles.badges}>
-        <span style={styles.badgeGreen}>Fresh updates weekly</span>
-        <span style={styles.badgeOutline}>ExploreAI for learners &gt;</span>
+      <Navbar />
+      <div style={styles.hero}>
+        <div style={styles.badges}>
+          <span style={styles.badgeGreen}>Fresh updates weekly</span>
+          <span style={styles.badgeOutline}>ExploreAI for learners &gt;</span>
+        </div>
+
+        <h1 style={styles.heading}>
+          Meet your intelligent learning
+          <br />
+          and research tool
+        </h1>
+
+        <p style={styles.sub}>
+          Think visually. Map out ideas on an infinite canvas
+          <br />
+          and let AI guide your learning journey.
+        </p>
+
+        <button onClick={() => navigate("/dashboard")} style={styles.cta}>
+          Start Exploring
+        </button>
       </div>
 
-      <h1 style={styles.heading}>
-        Meet your intelligent learning
-        <br />
-        and research tool
-      </h1>
-
-      <p style={styles.sub}>
-        Think visually. Map out ideas on an infinite canvas
-        <br />
-        and let AI guide your learning journey.
-      </p>
-
-      <button onClick={() => navigate("/dashboard")} style={styles.cta}>
-        Start Exploring
-      </button>
+      <Businesses />
     </div>
   );
 }
@@ -35,14 +42,21 @@ const styles: Record<string, React.CSSProperties> = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    justifyContent: "center",
-    textAlign: "center",
+    justifyContent: "flex-start",
     backgroundColor: "#fafafa",
     backgroundImage:
       "radial-gradient(circle at center, #d4d4d8 1px, transparent 1px)",
     backgroundSize: "24px 24px",
     fontFamily: "system-ui, -apple-system, sans-serif",
-    padding: "0 24px",
+    padding: "200px 0 0",
+    boxSizing: "border-box",
+  },
+  hero: {
+    display: "flex",
+    flexDirection: "column",
+    alignItems: "center",
+    textAlign: "center",
+    padding: "0 24px 48px",
   },
   badges: {
     display: "flex",
