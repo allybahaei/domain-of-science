@@ -8,12 +8,20 @@ interface TreeNode {
   angleSpan: number;
 }
 
-const DEPTH_COLORS: Record<number, { bg: string; stroke: string }> = {
-  0: { bg: "#FFD700", stroke: "#B8860B" },
-  1: { bg: "#6B8CFF", stroke: "#3A5BD9" },
-  2: { bg: "#FF6B8C", stroke: "#D93A5B" },
-  3: { bg: "#6BFFB8", stroke: "#3AD98A" },
-};
+const ROOT_COLOR = { bg: "#FFD700", stroke: "#B8860B" };
+
+const SUBTREE_PALETTE: { bg: string; stroke: string }[] = [
+  { bg: "#6B8CFF", stroke: "#3A5BD9" },
+  { bg: "#FF6B8C", stroke: "#D93A5B" },
+  { bg: "#6BFFB8", stroke: "#3AD98A" },
+  { bg: "#C084FC", stroke: "#7C3AED" },
+  { bg: "#FB923C", stroke: "#C2410C" },
+  { bg: "#38BDF8", stroke: "#0369A1" },
+  { bg: "#F472B6", stroke: "#BE185D" },
+  { bg: "#A3E635", stroke: "#4D7C0F" },
+  { bg: "#FACC15", stroke: "#A16207" },
+  { bg: "#2DD4BF", stroke: "#0F766E" },
+];
 
 const NODE_DIMS: Record<number, { width: number; height: number; fontSize: number }> = {
   0: { width: 280, height: 80, fontSize: 28 },
@@ -22,7 +30,7 @@ const NODE_DIMS: Record<number, { width: number; height: number; fontSize: numbe
   3: { width: 200, height: 60, fontSize: 18 },
 };
 
-const RADII = [0, 450, 900, 1350];
+const RADII = [0, 300, 580, 850];
 const ARROW_GAP = 8;
 
 function randomId(): string {
@@ -122,7 +130,7 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
   const rectIdMap = new Map<string, string>();
   const posMap = new Map<string, { x: number; y: number }>();
 
-  function emitNodes(t: TreeNode) {
+  function emitNode(t: TreeNode, color: { bg: string; stroke: string }) {
     const r = RADII[t.node.depth] ?? RADII[RADII.length - 1];
     const pos = {
       x: r * Math.cos(t.angle),
@@ -131,7 +139,6 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
     posMap.set(t.node.id, pos);
 
     const dims = NODE_DIMS[t.node.depth] ?? NODE_DIMS[3];
-    const colors = DEPTH_COLORS[t.node.depth] ?? DEPTH_COLORS[3];
     const rectId = randomId();
     const textId = randomId();
     rectIdMap.set(t.node.id, rectId);
@@ -146,8 +153,8 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
       y,
       width: dims.width,
       height: dims.height,
-      strokeColor: colors.stroke,
-      backgroundColor: colors.bg,
+      strokeColor: color.stroke,
+      backgroundColor: color.bg,
       fillStyle: "solid",
       roughness: 2,
       opacity: 100,
@@ -181,11 +188,21 @@ export function buildExcalidrawElements(data: MindmapData): any[] {
     });
 
     for (const child of t.children) {
-      emitNodes(child);
+      emitNode(child, color);
     }
   }
 
-  emitNodes(tree);
+  // Emit root alone with its own colour (no recursion needed — emitNode
+  // recurses into children, so we call it only for the root-level node
+  // by temporarily detaching children, then emit each subtree separately).
+  const rootChildren = tree.children;
+  tree.children = [];
+  emitNode(tree, ROOT_COLOR);
+  tree.children = rootChildren;
+
+  tree.children.forEach((child, i) => {
+    emitNode(child, SUBTREE_PALETTE[i % SUBTREE_PALETTE.length]);
+  });
 
   function emitEdges(t: TreeNode) {
     for (const child of t.children) {
